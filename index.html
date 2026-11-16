@@ -197,7 +197,7 @@
         </dl>
         <div class="learn">
           <span>Learn more</span>
-          <a href="#" class="cta">Read the case study
+          <a href="#" class="cta" id="book-cta">Read the case study
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
           </a>
         </div>
@@ -228,7 +228,8 @@ const PROJECTS = {
              img: 'images/code-graph.jpg', alt: 'Node graph view of Python files for orbital mechanics code' },
   autodog: { title: 'Automatic Dog Training System', kind: 'Design Team', photo: 'Harness on dog', color: '#C9B79C',
              blurb: 'A dog training harness system with sensing, feedback and GPS/cellular tracking.',
-             img: 'images/dog.webp', alt: 'Dog wearing the training harness' },
+             img: 'images/dog.webp', alt: 'Dog wearing the training harness',
+             link: 'https://autodog.framer.website' },
   spa:     { title: 'SPA', kind: 'Alternate Navigation Research Fellow', photo: 'Logo', color: '#C9D4C5',
              blurb: '[One line about the role.]', img: 'images/spa.png', zoom: 1.8 },
   smx:     { title: 'SMX', kind: 'Software engineer', photo: 'Logo', color: '#DCEAF6',
@@ -332,6 +333,10 @@ function renderBook() {
   document.getElementById('book-kind').textContent = p.kind;
   document.getElementById('book-title').textContent = p.title;
   document.getElementById('book-blurb').textContent = p.blurb;
+  // Case study button: opens the project's own site in a new tab when it has one.
+  const cta = document.getElementById('book-cta');
+  cta.href = p.link || '#';
+  if (p.link) { cta.target = '_blank'; cta.rel = 'noopener'; } else { cta.removeAttribute('target'); cta.removeAttribute('rel'); }
   const s = all[selected] || all[0];
   const main = document.getElementById('main-img');
   main.style.background = s.color;
