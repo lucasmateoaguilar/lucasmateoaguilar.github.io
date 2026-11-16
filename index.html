@@ -47,6 +47,7 @@
   .tile .img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
   .tile .logo-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
   .tile .logo-wrap img { width: 60%; height: 50%; object-fit: contain; object-position: 50% 50%; display: block; }
+  .tile.has-img .placeholder { display: none; }
   .tile .placeholder {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #3A3835;
@@ -258,7 +259,7 @@ function shade(hex, t) {
 
 // If an image file is missing, remove it so the colored placeholder shows instead.
 function imgTag(src, alt, style) {
-  return `<img src="${esc(src)}" alt="${esc(alt)}"${style ? ` style="${style}"` : ''} loading="lazy" onerror="this.remove()">`;
+  return `<img src="${esc(src)}" alt="${esc(alt)}"${style ? ` style="${style}"` : ''} loading="lazy" onload="this.closest('.tile')?.classList.add('has-img')" onerror="this.remove()">`;
 }
 
 function introHTML(h) {
