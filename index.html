@@ -24,13 +24,11 @@
   a:hover { color: #E5482D; }
   .red { color: var(--red); }
 
-  .page { position: relative; min-height: 100vh; }
   .wrap { max-width: 1440px; margin: 0 auto; padding: 40px 40px 64px; }
   @media (max-width: 640px) { .wrap { padding: 24px 16px 48px; } }
 
   header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; padding-bottom: 32px; }
   header h1 { margin: 0; font-family: var(--display); font-size: 40px; font-weight: 600; letter-spacing: -0.02em; }
-  header p { margin: 8px 0 0; font-size: 16px; color: var(--ink-2); }
   nav { display: flex; gap: 28px; font-size: 15px; font-weight: 500; }
   nav a { text-decoration: none; }
 
@@ -45,7 +43,10 @@
     transition: transform .2s ease, box-shadow .2s ease; will-change: transform;
   }
   .tile:hover, .tile:focus-visible { transform: scale(1.03); z-index: 2; box-shadow: 0 14px 32px rgba(0,0,0,.18); }
-  .tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tile .img-wrap { position: absolute; inset: 0; overflow: hidden; }
+  .tile .img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
+  .tile .logo-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .tile .logo-wrap img { width: 60%; height: 50%; object-fit: contain; object-position: 50% 50%; display: block; }
   .tile .placeholder {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #3A3835;
@@ -65,10 +66,16 @@
   }
   .intro:hover { color: var(--ink); }
   .intro .photo { flex: 1 1 auto; min-height: 0; border-radius: 12px; background: #EAE6DF; overflow: hidden; }
-  .intro .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .intro .photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
   .intro .hello {
     padding: 10px 12px; border-radius: 12px; background: rgba(251,250,247,0.94);
     font-family: var(--display); font-size: 26px; font-weight: 600; letter-spacing: -0.01em;
+  }
+
+  /* Section heading inside the grid */
+  .section-heading {
+    flex: 1 1 0; min-width: 0; margin: 0; display: flex; align-items: center; justify-content: flex-end; text-align: right;
+    font-family: var(--display); font-size: 40px; line-height: 1; font-weight: 600; letter-spacing: -0.02em; color: var(--ink);
   }
 
   /* Book overlay */
@@ -112,7 +119,7 @@
   }
   .thumb:hover, .thumb:focus-visible { transform: scale(1.05); z-index: 2; box-shadow: 0 8px 18px rgba(0,0,0,.2); }
   .thumb.sel::after { content: ""; position: absolute; inset: 0; border: 2px solid var(--ink); border-radius: 3px; }
-  .main-img img, .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .main-img img, .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
 
   .close {
     position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border: 0; border-radius: 22px;
@@ -149,21 +156,16 @@
 </style>
 </head>
 <body>
-<div class="page">
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>Lucas <span class="red">Mateo</span> Aguilar</h1>
-        <p>Designer. Engineering and code are my tools.</p>
-      </div>
-      <nav aria-label="Main">
-        <a href="#">Work</a>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
-      </nav>
-    </header>
-    <main class="grid" id="grid"></main>
-  </div>
+<div class="wrap">
+  <header>
+    <h1>Lucas <span class="red">Mateo</span> Aguilar</h1>
+    <nav aria-label="Main">
+      <a href="#">Work</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </nav>
+  </header>
+  <main class="grid" id="grid"></main>
 </div>
 
 <div class="overlay" id="overlay" hidden>
@@ -205,41 +207,40 @@
 
 <script>
 // ---------- Content: edit your projects here ----------
-// img: the tile image on the home page (path inside the images folder), or null for a placeholder.
-// bookImages: optional images for the book, by slot number (0 Hero shot, 1 Sketch, 2 Prototype,
-// 3 Detail, 4 Testing, 5 In use, 6 Final). Slots without an image show a colored placeholder.
-// position: optional CSS object-position for how the tile image is cropped.
+// img: the tile's image (a file in the images folder), or null for a colored placeholder.
+// logo: true shows the image smaller and fully visible (not cropped), centered on the tile color.
+// zoom: crops in closer, e.g. 1.8 shows the image 1.8 times bigger.
+// gallery: photos for the book. First = big photo, next 4 = right column, last 4 = bottom row.
+// bookImages: for books without a gallery, photos by slot
+//   (0 Hero shot, 1 Sketch, 2 Prototype, 3 Detail, 4 Testing, 5 In use, 6 Final).
 const PROJECTS = {
-  autodog: { title: 'AutoDog', kind: 'Senior design', photo: 'Harness on dog', color: '#C9B79C',
-             blurb: 'A dog training harness system with sensing, feedback and GPS/cellular tracking.',
-             img: 'images/dog.webp' },
-  abr:     { title: 'Malawi ABR', kind: 'Biomedical', photo: 'Screening device', color: '#BCC6DA',
-             blurb: 'A low cost ABR hearing screening device for Malawi.',
-             img: 'images/malawi-poster.jpg', position: 'left top',
-             alt: 'Improving Newborn Hearing Screening in Malawi research poster' },
-  jeans:   { title: 'Upcycled Jeans', kind: 'Materials and processes', photo: 'Before and after', color: '#B4C0D3',
+  jeans:   { title: 'Custom Garment Design', kind: 'Materials and processes lab', photo: 'Before and after', color: '#B4C0D3',
              blurb: 'Upcycling oversized pants into custom fit jeans.',
-             img: null, bookImages: { 1: 'images/jeans-sketch.jpg' } },
-  hoian:   { title: 'Hoi An Tailoring', kind: 'Clothing design', photo: 'Garment on form', color: '#D7B29A',
-             blurb: 'Designing and making custom garments with tailors in Hoi An, Vietnam.', img: null },
-  stools:  { title: 'Finline Stools', kind: '[Discipline]', photo: 'Stools', color: '#C4BFD6',
-             blurb: '[One line summary of the project.]', img: 'images/finline-stools.webp' },
-  histo:   { title: 'Histotripsy', kind: 'Research', photo: 'Prototype', color: '#D3C9A6',
-             blurb: '[One line summary of the project.]', img: null },
-  p7:      { title: '[Project]', kind: '[Discipline]', photo: 'Image', color: '#BFCBC2',
-             blurb: '[One line summary of the project.]', img: 'images/code-graph.jpg', position: 'left top',
-             alt: 'Node graph view of Python files for orbital mechanics code' },
-  p8:      { title: '[Project]', kind: '[Discipline]', photo: 'Image', color: '#D8C3BD',
-             blurb: '[One line summary of the project.]', img: null }
+             img: 'images/custom-garment.jpg', bookImages: { 1: 'images/custom-garment.jpg' } },
+  stools:  { title: 'Finline Stools', kind: 'Studio Project', photo: 'Stools', color: '#C4BFD6',
+             blurb: '[One line summary of the project.]',
+             img: 'images/finline-stools.jpg',
+             gallery: ['images/finline-stools.jpg', 'images/stools-2.jpg', 'images/stools-3.jpg', 'images/stools-4.jpg',
+                       'images/stools-5.jpg', 'images/stools-6.jpg', 'images/stools-7.jpg', 'images/stools-8.jpg', 'images/stools-9.jpg'] },
+  ide:     { title: 'Systems IDE', kind: 'UI/UX Design', photo: 'Image', color: '#BFCBC2',
+             blurb: '[One line summary of the project.]',
+             img: 'images/code-graph.jpg', alt: 'Node graph view of Python files for orbital mechanics code' },
+  autodog: { title: 'Automatic Dog Training System', kind: 'Design Team', photo: 'Harness on dog', color: '#C9B79C',
+             blurb: 'A dog training harness system with sensing, feedback and GPS/cellular tracking.',
+             img: 'images/dog.webp', alt: 'Dog wearing the training harness' },
+  spa:     { title: 'SPA', kind: 'Student researcher', photo: 'Logo', color: '#C9D4C5',
+             blurb: '[One line about the role.]', img: 'images/spa.png', zoom: 1.8 },
+  smx:     { title: 'SMX', kind: 'Software engineer', photo: 'Logo', color: '#DCEAF6',
+             blurb: '[One line about the role.]', img: 'images/smx.png', logo: true, nudgeX: -14 }
 };
 
 const INTRO_PHOTO = 'images/mateo.jpg';
 
-// Layout: three columns; each row holds one or two tiles with a height in px.
+// Layout: three columns; each row holds tiles with a height in px.
 const LAYOUT = [
-  { flex: '1 1 280px',   rows: [[['intro', 420]], [['abr', 286]], [['p7', 184], ['p8', 184]]] },
-  { flex: '1 1 280px',   rows: [[['hoian', 206]], [['histo', 263]], [['stools', 421]]] },
-  { flex: '1.45 1 380px', rows: [[['autodog', 588]], [['jeans', 318]]] }
+  { flex: '1 1 280px',    rows: [[['intro', 420]], [['jeans', 544]]] },
+  { flex: '1 1 280px',    rows: [[['stools', 485]], [['ide', 221]], [['spa', 242]]] },
+  { flex: '1.45 1 380px', rows: [[['autodog', 588]], [['heading', 118]], [['smx', 242]]] }
 ];
 
 const LABELS = ['Hero shot', 'Sketch', 'Prototype', 'Detail', 'Testing', 'In use', 'Final'];
@@ -256,21 +257,31 @@ function shade(hex, t) {
 }
 
 // If an image file is missing, remove it so the colored placeholder shows instead.
-function imgTag(src, alt, position) {
-  const pos = position ? ` style="object-position:${position}"` : '';
-  return `<img src="${esc(src)}" alt="${esc(alt)}"${pos} loading="lazy" onerror="this.remove()">`;
+function imgTag(src, alt, style) {
+  return `<img src="${esc(src)}" alt="${esc(alt)}"${style ? ` style="${style}"` : ''} loading="lazy" onerror="this.remove()">`;
 }
 
 function introHTML(h) {
   return `<a href="#" class="intro" aria-label="About Mateo" style="height:${h}px">
-    <span class="photo">${imgTag(INTRO_PHOTO, 'Mateo waving')}</span>
+    <span class="photo">${imgTag(INTRO_PHOTO, 'Mateo')}</span>
     <span class="hello">Hi, I'm <span class="red">Mateo</span>.</span>
   </a>`;
 }
 
+function headingHTML(h) {
+  return `<h2 class="section-heading" style="height:${h}px"><span><span class="red">2+ Years</span> of Work Experience</span></h2>`;
+}
+
 function tileHTML(id, h) {
   const p = PROJECTS[id];
-  const img = p.img ? imgTag(p.img, p.alt || p.title, p.position) : '';
+  let img = '';
+  if (p.img && p.logo) {
+    const nudge = p.nudgeX ? `transform:translateX(${p.nudgeX}px)` : '';
+    img = `<span class="logo-wrap">${imgTag(p.img, p.alt || p.title, nudge)}</span>`;
+  } else if (p.img) {
+    const zoom = p.zoom ? `transform:scale(${p.zoom})` : '';
+    img = `<span class="img-wrap">${imgTag(p.img, p.alt || p.title, zoom)}</span>`;
+  }
   return `<button class="tile" data-id="${id}" aria-label="Open ${esc(p.title)}" style="height:${h}px;background:${p.color}">
     <span class="placeholder">[${esc(p.photo)}]</span>
     ${img}
@@ -278,9 +289,15 @@ function tileHTML(id, h) {
   </button>`;
 }
 
+function cellHTML(id, h) {
+  if (id === 'intro') return introHTML(h);
+  if (id === 'heading') return headingHTML(h);
+  return tileHTML(id, h);
+}
+
 document.getElementById('grid').innerHTML = LAYOUT.map((col) =>
   `<div class="col" style="flex:${col.flex}">${col.rows.map((row) =>
-    `<div class="row">${row.map(([id, h]) => id === 'intro' ? introHTML(h) : tileHTML(id, h)).join('')}</div>`
+    `<div class="row">${row.map(([id, h]) => cellHTML(id, h)).join('')}</div>`
   ).join('')}</div>`
 ).join('');
 
@@ -291,28 +308,38 @@ let selected = 0;
 let lastFocus = null;
 let closeTimer = null;
 
-function slotImage(p, i) {
-  return p.bookImages && p.bookImages[i] ? p.bookImages[i] : null;
+// Each book slot: { label, color, src }
+function slots(p) {
+  if (p.gallery) {
+    return p.gallery.map((src, i) => ({ label: 'Photo ' + (i + 1), color: p.color, src }));
+  }
+  return LABELS.map((label, i) => ({
+    label, color: shade(p.color, TONES[i]),
+    src: p.bookImages && p.bookImages[i] ? p.bookImages[i] : null
+  }));
 }
 
-function thumbHTML(p, i) {
-  const src = slotImage(p, i);
-  return `<button class="thumb${i === selected ? ' sel' : ''}" data-slot="${i}" aria-label="Show ${LABELS[i]}" style="background:${shade(p.color, TONES[i])}">
-    ${LABELS[i]}${src ? imgTag(src, `${p.title} ${LABELS[i]}`) : ''}
+function thumbHTML(p, s, i) {
+  return `<button class="thumb${i === selected ? ' sel' : ''}" data-slot="${i}" aria-label="Show ${esc(s.label)}" style="background:${s.color}">
+    ${esc(s.label)}${s.src ? imgTag(s.src, `${p.title} ${s.label}`) : ''}
   </button>`;
 }
 
 function renderBook() {
   const p = PROJECTS[current];
+  const all = slots(p);
   document.getElementById('book-kind').textContent = p.kind;
   document.getElementById('book-title').textContent = p.title;
   document.getElementById('book-blurb').textContent = p.blurb;
+  const s = all[selected] || all[0];
   const main = document.getElementById('main-img');
-  const src = slotImage(p, selected);
-  main.style.background = shade(p.color, TONES[selected]);
-  main.innerHTML = `[${LABELS[selected]}]${src ? imgTag(src, `${p.title} ${LABELS[selected]}`) : ''}`;
-  document.getElementById('side').innerHTML = [0, 1, 2, 3].map((i) => thumbHTML(p, i)).join('');
-  document.getElementById('bottom').innerHTML = [4, 5, 6].map((i) => thumbHTML(p, i)).join('');
+  main.style.background = s.color;
+  main.innerHTML = `[${esc(s.label)}]${s.src ? imgTag(s.src, `${p.title} ${s.label}`) : ''}`;
+  // Gallery books: big photo + 4 on the right + 4 below. Others: 4 on the right + 3 below.
+  const side = p.gallery ? [1, 2, 3, 4] : [0, 1, 2, 3];
+  const bottom = p.gallery ? [5, 6, 7, 8] : [4, 5, 6];
+  document.getElementById('side').innerHTML = side.filter((i) => all[i]).map((i) => thumbHTML(p, all[i], i)).join('');
+  document.getElementById('bottom').innerHTML = bottom.filter((i) => all[i]).map((i) => thumbHTML(p, all[i], i)).join('');
 }
 
 function openBook(id) {
@@ -345,7 +372,13 @@ document.getElementById('grid').addEventListener('click', (e) => {
 });
 overlay.addEventListener('click', (e) => {
   const thumb = e.target.closest('.thumb');
-  if (thumb) { selected = Number(thumb.dataset.slot); renderBook(); return; }
+  if (thumb) {
+    const i = Number(thumb.dataset.slot);
+    // In a gallery book, clicking the shown photo again goes back to the big one.
+    selected = PROJECTS[current].gallery && selected === i ? 0 : i;
+    renderBook();
+    return;
+  }
   if (e.target.closest('#close') || e.target.id === 'backdrop') closeBook();
 });
 document.addEventListener('keydown', (e) => {
