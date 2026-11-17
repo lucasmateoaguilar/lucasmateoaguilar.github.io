@@ -29,8 +29,15 @@
 
   header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; padding-bottom: 32px; }
   header h1 { margin: 0; font-family: var(--display); font-size: 40px; font-weight: 600; letter-spacing: -0.02em; }
-  nav { display: flex; gap: 28px; font-size: 15px; font-weight: 500; }
-  nav a { text-decoration: none; }
+
+  /* Contact icons (email copies the address, LinkedIn opens the profile) */
+  .contact { display: flex; gap: 8px; }
+  .icon-link {
+    display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0;
+    border: 0; border-radius: 22px; background: transparent; color: var(--ink); cursor: pointer; font: inherit;
+    text-decoration: none; transition: color .15s ease, background .15s ease;
+  }
+  .icon-link:hover, .icon-link:focus-visible { color: var(--red); background: #E9E5DE; }
 
   /* Grid */
   .grid { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
@@ -43,6 +50,9 @@
     transition: transform .2s ease, box-shadow .2s ease; will-change: transform;
   }
   .tile:hover, .tile:focus-visible { transform: scale(1.03); z-index: 2; box-shadow: 0 14px 32px rgba(0,0,0,.18); }
+  /* Coming soon tiles don't grow on hover and don't open. */
+  .tile.soon { cursor: default; }
+  .tile.soon:hover, .tile.soon:focus-visible { transform: none; box-shadow: none; }
   .tile .img-wrap { position: absolute; inset: 0; overflow: hidden; }
   .tile .img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
   .tile .logo-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
@@ -59,6 +69,15 @@
   }
   .caption b { font-weight: 600; }
   .caption span { color: var(--ink-3); }
+
+  /* Coming soon band, tilted across the tile */
+  .banner-wrap { position: absolute; inset: 0; overflow: hidden; border-radius: 4px; pointer-events: none; }
+  .banner {
+    position: absolute; left: 50%; width: 170%; transform: translate(-50%, -50%) rotate(-20deg);
+    background: var(--red); color: #FFFFFF; text-align: center; padding: 14px 0; white-space: nowrap;
+    font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  }
 
   /* Intro block (no hover) */
   .intro {
@@ -79,6 +98,19 @@
     font-family: var(--display); font-size: 40px; line-height: 1; font-weight: 600; letter-spacing: -0.02em; color: var(--ink);
   }
 
+  /* Copied toast */
+  .toast {
+    display: none; position: fixed; left: 50%; bottom: 56px; z-index: 20; transform: translateX(-50%);
+    align-items: center; gap: 10px; padding: 12px 18px 12px 14px; border-radius: 999px;
+    background: #FFFFFF; color: var(--ink); font-size: 15px; font-weight: 500; white-space: nowrap;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .toast.show { display: flex; animation: toastIn .2s ease both; }
+  .toast .check {
+    width: 24px; height: 24px; border-radius: 12px; background: #2E9E5B; flex: none;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
   /* Book overlay */
   .overlay { position: fixed; inset: 0; z-index: 10; overflow-y: auto; }
   .overlay[hidden] { display: none; }
@@ -95,6 +127,7 @@
     display: flex; flex-direction: column; gap: 12px;
     transform-origin: right center; animation: openL .25s cubic-bezier(.2,.75,.25,1) both;
   }
+  .page-l.centered { min-height: 0; justify-content: center; }
   .page-r {
     position: relative; padding: 40px 44px; border-radius: 0 6px 6px 0; box-shadow: inset 22px 0 28px -22px rgba(0,0,0,0.22);
     display: flex; flex-direction: column; gap: 20px;
@@ -105,6 +138,7 @@
   .is-closing .page-l { animation: closeL .25s ease both; }
   .is-closing .page-r { animation: closeR .25s ease both; }
 
+  /* Book, standard layout: big photo, column of 4, row below */
   .gallery-top { display: flex; gap: 12px; flex: 1 1 auto; min-height: 440px; }
   .main-img {
     flex: 1 1 0; min-width: 0; position: relative; overflow: hidden; border-radius: 3px;
@@ -122,6 +156,25 @@
   .thumb.sel::after { content: ""; position: absolute; inset: 0; border: 2px solid var(--ink); border-radius: 3px; }
   .main-img img, .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
 
+  /* Book, AutoDog layout: full-width photo (frame takes the photo's shape), 4 thumbnails below */
+  .photo-wrap { display: flex; }
+  .photo-frame {
+    flex: 1 1 0; min-width: 0; aspect-ratio: 1176 / 1431; display: flex; align-items: center; overflow: hidden;
+    border-radius: 3px; background: var(--paper); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #3A3835;
+  }
+  .photo-frame img { width: 100%; height: auto; border-radius: 3px; display: block; }
+  .photo-frame .photo-empty { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+  .thumb-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 110px; gap: 12px; }
+
+  /* Book, work layout: logo (and SPA program slide) */
+  .logo-box { display: block; overflow: hidden; border-radius: 3px; }
+  .logo-box.wide { aspect-ratio: 16 / 9; }
+  .logo-box.wide img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.8); display: block; }
+  .logo-box.square { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; background: #DCEAF6; }
+  .logo-box.square img { width: 62%; height: auto; display: block; }
+  .slide { width: 100%; height: auto; border-radius: 3px; display: block; }
+  .work-stack { display: flex; flex-direction: column; gap: 12px; }
+
   .close {
     position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border: 0; border-radius: 22px;
     background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink);
@@ -135,6 +188,7 @@
   dt { color: var(--ink-3); }
   dd { margin: 4px 0 0; font-weight: 500; }
   .learn { margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-top: 20px; border-top: 1px solid #E2DED7; }
+  .learn[hidden] { display: none; }
   .learn span { font-family: var(--display); font-size: 24px; font-weight: 500; }
   .cta {
     display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 22px; border-radius: 4px;
@@ -150,6 +204,7 @@
   @keyframes openR { from { transform: rotateY(-85deg) } to { transform: rotateY(0) } }
   @keyframes closeL { from { transform: rotateY(0) } to { transform: rotateY(85deg) } }
   @keyframes closeR { from { transform: rotateY(0) } to { transform: rotateY(-85deg) } }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px) } to { opacity: 1; transform: translate(-50%, 0) } }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }
@@ -160,44 +215,49 @@
 <div class="wrap">
   <header>
     <h1>Lucas <span class="red">Mateo</span> Aguilar</h1>
-    <nav aria-label="Main">
-      <a href="#">Work</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
+    <nav class="contact" aria-label="Contact">
+      <button class="icon-link" id="copy-email" aria-label="Copy email address lucasa24@vt.edu" title="Copy lucasa24@vt.edu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"></rect><path d="M3.5 6.5l8.5 6.5 8.5-6.5"></path></svg>
+      </button>
+      <a class="icon-link" href="https://www.linkedin.com/in/lucas-mateo-aguilar-a569a3209/" target="_blank" rel="noopener" aria-label="Mateo on LinkedIn" title="LinkedIn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="2.5"></rect><path d="M8 10.5v6M8 7.6v.01M12 16.5v-6M12 13c0-1.6 1-2.6 2.4-2.6S16.5 11.4 16.5 13v3.5"></path></svg>
+      </a>
     </nav>
   </header>
   <main class="grid" id="grid"></main>
+</div>
+
+<div class="toast" id="toast" role="status">
+  <span class="check">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+  </span>
+  Copied to clipboard
 </div>
 
 <div class="overlay" id="overlay" hidden>
   <button class="backdrop" id="backdrop" aria-label="Close project" tabindex="-1"></button>
   <div class="stage">
     <div class="book" role="dialog" aria-modal="true" aria-labelledby="book-title">
-      <section class="page-l">
-        <div class="gallery-top">
-          <div class="main-img" id="main-img"></div>
-          <div class="side" id="side"></div>
-        </div>
-        <div class="bottom" id="bottom"></div>
-      </section>
-      <section class="page-r">
+      <section class="page-l" id="page-l"></section>
+      <section class="page-r" id="page-r">
         <button class="close" id="close" aria-label="Close project">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg>
         </button>
         <p class="kind" id="book-kind"></p>
         <h2 id="book-title"></h2>
         <p class="blurb" id="book-blurb"></p>
-        <p class="body">[Write-up: the problem, who it was for, and why it mattered.]</p>
-        <p class="body">[Process: research, sketches, prototypes, testing, what changed along the way.]</p>
-        <p class="body">[Outcome: what got built and what you learned.]</p>
+        <p class="body" id="book-writeup"></p>
+        <p class="body" id="book-process"></p>
+        <p class="body" id="book-outcome"></p>
         <dl>
-          <div><dt>Role</dt><dd>[Your role]</dd></div>
-          <div><dt>Team</dt><dd>[Team]</dd></div>
-          <div><dt>Tools</dt><dd>[Tools]</dd></div>
+          <div><dt>Role</dt><dd id="book-role"></dd></div>
+          <div><dt>Team</dt><dd id="book-team"></dd></div>
+          <div><dt>Skills used</dt><dd id="book-tools"></dd></div>
         </dl>
-        <div class="learn">
+        <div class="learn" id="learn" hidden>
           <span>Learn more</span>
-          <a href="#" class="cta" id="book-cta">Read the case study
+          <a href="#" class="cta" id="book-cta">
+            <span id="book-cta-text"></span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
           </a>
         </div>
@@ -211,29 +271,77 @@
 // img: the tile's image (a file in the images folder), or null for a colored placeholder.
 // logo: true shows the image smaller and fully visible (not cropped), centered on the tile color.
 // zoom: crops in closer, e.g. 1.8 shows the image 1.8 times bigger.
-// gallery: photos for the book. First = big photo, next 4 = right column, last 4 = bottom row.
-// bookImages: for books without a gallery, photos by slot
-//   (0 Hero shot, 1 Sketch, 2 Prototype, 3 Detail, 4 Testing, 5 In use, 6 Final).
+// soon: a "Coming soon" band across the tile. The tile can't be opened.
+// layout: how the book's photos are arranged.
+//   feature  one large photo with thumbnails below (AutoDog)
+//   gallery  big photo, column of 4 on the right, row of 4 below
+//   work     logo, plus an optional program slide (SPA, SMX)
+//   slots    photos by slot (0 Hero shot, 1 Sketch, 2 Prototype, 3 Detail, 4 Testing, 5 In use, 6 Final)
+// gallery: photos for the book, in order.
+// bookImages: for "slots" books, photos by slot number.
 const PROJECTS = {
-  jeans:   { title: 'Custom Garment Design', kind: 'Materials and processes lab', photo: 'Before and after', color: '#B4C0D3',
-             blurb: 'Upcycling oversized pants into custom fit jeans.',
-             img: 'images/custom-garment.jpg', bookImages: { 1: 'images/custom-garment.jpg' } },
-  stools:  { title: 'Finline Stools', kind: 'Studio Project', photo: 'Stools', color: '#C4BFD6',
-             blurb: '[One line summary of the project.]',
-             img: 'images/finline-stools.jpg',
-             gallery: ['images/finline-stools.jpg', 'images/stools-2.jpg', 'images/stools-3.jpg', 'images/stools-4.jpg',
-                       'images/stools-5.jpg', 'images/stools-6.jpg', 'images/stools-7.jpg', 'images/stools-8.jpg', 'images/stools-9.jpg'] },
-  ide:     { title: 'Systems IDE', kind: 'UI/UX Design', photo: 'Image', color: '#BFCBC2',
-             blurb: '[One line summary of the project.]',
-             img: 'images/code-graph.jpg', alt: 'Node graph view of Python files for orbital mechanics code' },
-  autodog: { title: 'Automatic Dog Training System', kind: 'Design Team', photo: 'Harness on dog', color: '#C9B79C',
-             blurb: 'A dog training harness system with sensing, feedback and GPS/cellular tracking.',
-             img: 'images/dog.webp', alt: 'Dog wearing the training harness',
-             link: 'https://autodog.framer.website' },
-  spa:     { title: 'SPA', kind: 'Alternate Navigation Research Fellow', photo: 'Logo', color: '#C9D4C5',
-             blurb: '[One line about the role.]', img: 'images/spa.png', zoom: 1.8 },
-  smx:     { title: 'SMX', kind: 'Software engineer', photo: 'Logo', color: '#DCEAF6',
-             blurb: '[One line about the role.]', img: 'images/smx.png', logo: true, nudgeX: -14 }
+  jeans: {
+    title: 'Custom Garment Design', kind: 'Materials and processes lab', photo: 'Before and after', color: '#B4C0D3',
+    blurb: 'Upcycling oversized pants into custom fit jeans.',
+    img: 'images/custom-garment.jpg', soon: { date: '12/18', top: '56.3%' },
+    layout: 'slots', bookImages: { 1: 'images/custom-garment.jpg' }
+  },
+  stools: {
+    title: 'Finline Stools', kind: 'Studio Project', photo: 'Stools', color: '#C4BFD6',
+    blurb: 'A three legged stool in cherry and blued steel, designed to hold one person and pack into a shoebox.',
+    writeup: 'The brief for our industrial design summer studio was to build something that holds the weight of one person, made for ourselves, with every piece fitting inside a shoebox.',
+    process: 'Our team of three sketched ideas, built cardboard mockups, and made a low fidelity prototype together. I modeled the design in 3D to get the proportions right. Then each of us designed and built our own stool. For mine, I welded and bent the steel tube legs, CNC machined parts, and tested different woods, stains and finishes. I settled on a cherry leg, blued steel legs, and a black washed top that still lets the grain show through.',
+    outcome: 'I use my stool every day as my coffee table by the couch. It was my second woodworking project and my first time designing alongside artists instead of only engineers.',
+    role: 'Design & fabrication',
+    team: 'Team of 3 with Julia Hocker and Alyssa Rasinski, math and creative design majors',
+    tools: 'Fusion 360, CAM, MIG welding, woodworking, CMF testing, 3D printing, cardboard prototyping',
+    img: 'images/finline-stools.jpg', layout: 'gallery',
+    gallery: ['images/finline-stools.jpg', 'images/stools-2.jpg', 'images/stools-3.jpg', 'images/stools-4.jpg',
+              'images/stools-5.jpg', 'images/stools-6.jpg', 'images/stools-7.jpg', 'images/stools-8.jpg', 'images/stools-9.jpg']
+  },
+  ide: {
+    title: 'Systems IDE', kind: 'UI/UX Design', photo: 'Image', color: '#BFCBC2',
+    blurb: '[One line summary of the project.]',
+    img: 'images/code-graph.jpg', alt: 'Node graph view of Python files for orbital mechanics code',
+    soon: { date: '11/28', top: '42%' }, layout: 'slots'
+  },
+  autodog: {
+    title: 'Automatic Dog Training System', kind: 'Founder & Design Team Lead', photo: 'Harness on dog', color: '#C9B79C',
+    blurb: 'A harness that teaches a dog basic obedience on its own, so owners don\'t need a professional trainer.',
+    writeup: 'In 2020 my family paid $3,000 to have our dog Jess professionally trained. Within weeks of coming home she was back to her old aggressive habits. Watching training videos afterward, I saw that obedience training comes down to a few rules: reward the right behavior and correct the wrong one, immediately and every time. People struggle to be that consistent. A device does not.',
+    process: 'So I decided to build one. I made a working proof of concept that trains four basic commands: sit, down, come and heel. The harness uses sensors to track the dog\'s position and tell whether a command was followed, and a leash with a belt clip tracks obedience to the come and heel commands.',
+    outcome: 'Since then I secured outside funding, and we are now in phase 2: building a version for user testing and animal studies.',
+    role: 'Founder & Design Team Lead',
+    team: 'Software Dev, ECE, Animal Science, Industrial Design',
+    tools: 'C++, Python, PCB Design, 3D Printing, Fusion 360, Ansys',
+    img: 'images/dog.webp', alt: 'Dog wearing the training harness',
+    link: 'https://autodog.framer.website', linkText: 'Check out the project website',
+    layout: 'feature',
+    gallery: ['images/dog.webp', 'images/autodog-harness.jpg', 'images/autodog-leash.jpg', 'images/autodog-pcb.png']
+  },
+  spa: {
+    title: 'SPA', kind: 'Alternate Navigation Research Fellow', photo: 'Logo', color: '#C9D4C5',
+    blurb: 'I am developing a sensor fusion framework that combines different navigation technologies so hypersonic vehicles can navigate without GPS.',
+    writeup: 'Hypersonic vehicles rely on GPS to know where they are. When GPS is denied, they have to fall back on other sensors: star trackers and RF beacons that reference the outside world, and inertial or quantum sensors that work on their own but drift over time. None of them is accurate enough alone, and position error grows the further a system moves away from GPS.',
+    process: 'My work is developing a generalized framework for alternate navigation. Each navigation technology is treated as an input: a source of position information with its own error behavior, modeled from published hardware specifications. I build the sensor fusion algorithm that combines those inputs into a single position estimate, and we run the fused solution in HOTSHOT simulations to measure its effect on the vehicle’s flight.',
+    outcome: 'The framework lets the team compare navigation technologies on equal footing and determine which are most effective for hypersonic alternate navigation. I joined as a research intern and continue as a fellow, playing a central role in shaping the framework. The program is sponsored by Systems Planning & Analysis (SPA) through Virginia Tech’s National Security Institute.',
+    role: 'Research Fellow, sensor fusion algorithms',
+    team: 'Faculty mentor Dr. Austin Phoenix, student researchers',
+    tools: 'Sensor fusion, algorithm development, sensor error modeling, uncertainty propagation, HOTSHOT simulation',
+    img: 'images/spa.png', zoom: 1.8, layout: 'work', logo: 'spa'
+  },
+  smx: {
+    title: 'SMX', kind: 'Software engineer', photo: 'Logo', color: '#DCEAF6',
+    blurb: 'Software engineer at a cloud and C5ISR company serving defense, intelligence and commercial clients.',
+    writeup: 'SMX, formerly Smartronix, designs, builds, manages and secures mission critical cloud systems for highly regulated organizations, from the Department of Defense and the intelligence community to Fortune 1000 companies. It holds Premier partner status with AWS, Microsoft Azure and Google Cloud.',
+    process: 'I worked on cloud infrastructure and testing: writing Terraform, building and running automated CI test pipelines, and debugging deployments in secure cloud environments.',
+    outcome: 'About two years of professional software development on mission focused cloud systems. I am also an AWS Certified Solutions Architect. I moved on from cloud software to pursue aerospace engineering, to learn how to design physical objects and systems.',
+    role: 'Software Engineer',
+    team: 'Internal Services',
+    tools: 'Terraform, AWS, CI/CD testing, debugging',
+    link: 'https://www.smxtech.com/', linkText: 'Visit the SMX website',
+    img: 'images/smx.png', logo: 'smx', nudgeX: -14, layout: 'work'
+  }
 };
 
 const INTRO_PHOTO = 'images/mateo.jpg';
@@ -248,6 +356,7 @@ const LAYOUT = [
 const LABELS = ['Hero shot', 'Sketch', 'Prototype', 'Detail', 'Testing', 'In use', 'Final'];
 const TONES = [0, -0.12, 0.2, -0.22, 0.32, -0.06, 0.12];
 const ANIM_MS = 250;
+const EMAIL = 'lucasa24@vt.edu';
 
 // ---------- Rendering ----------
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -284,9 +393,14 @@ function tileHTML(id, h) {
     const zoom = p.zoom ? `transform:scale(${p.zoom})` : '';
     img = `<span class="img-wrap">${imgTag(p.img, p.alt || p.title, zoom)}</span>`;
   }
-  return `<button class="tile" data-id="${id}" aria-label="Open ${esc(p.title)}" style="height:${h}px;background:${p.color}">
+  const band = p.soon
+    ? `<span class="banner-wrap" aria-hidden="true"><span class="banner" style="top:${p.soon.top}">Coming soon &nbsp;·&nbsp; ${p.soon.date}</span></span>`
+    : '';
+  const label = p.soon ? `${p.title}, coming soon` : `Open ${p.title}`;
+  return `<button class="tile${p.soon ? ' soon' : ''}" data-id="${id}" aria-label="${esc(label)}" aria-disabled="${!!p.soon}" style="height:${h}px;background:${p.color}">
     <span class="placeholder">[${esc(p.photo)}]</span>
     ${img}
+    ${band}
     <span class="caption"><b>${esc(p.title)}</b><span>${esc(p.kind)}</span></span>
   </button>`;
 }
@@ -310,42 +424,102 @@ let selected = 0;
 let lastFocus = null;
 let closeTimer = null;
 
-// Each book slot: { label, color, src }
-function slots(p) {
+// Photos for the left page. Each: { label, color, src, alt }
+function photoItems(p) {
   if (p.gallery) {
-    return p.gallery.map((src, i) => ({ label: 'Photo ' + (i + 1), color: p.color, src }));
+    return p.gallery.map((src, i) => ({ label: 'Photo ' + (i + 1), color: p.color, src, alt: `${p.title} photo ${i + 1}` }));
   }
   return LABELS.map((label, i) => ({
     label, color: shade(p.color, TONES[i]),
-    src: p.bookImages && p.bookImages[i] ? p.bookImages[i] : null
+    src: (p.bookImages && p.bookImages[i]) || null,
+    alt: `${p.title} ${label}`
   }));
 }
 
-function thumbHTML(p, s, i) {
-  return `<button class="thumb${i === selected ? ' sel' : ''}" data-slot="${i}" aria-label="Show ${esc(s.label)}" style="background:${s.color}">
-    ${esc(s.label)}${s.src ? imgTag(s.src, `${p.title} ${s.label}`) : ''}
+function thumbHTML(it, i, isSel) {
+  return `<button class="thumb${isSel ? ' sel' : ''}" data-slot="${i}" aria-label="Show ${esc(it.label)}" style="background:${it.color}">
+    ${esc(it.label)}${it.src ? imgTag(it.src, it.alt) : ''}
   </button>`;
+}
+
+function thumbsHTML(items, idx) {
+  return idx.filter((i) => items[i] && items[i].src).map((i) => thumbHTML(items[i], i, i === selected)).join('');
+}
+
+function leftHTML(p, items) {
+  const pageL = document.getElementById('page-l');
+  const it = items[selected] || items[0];
+
+  if (p.layout === 'feature') {
+    pageL.className = 'page-l centered';
+    const frame = it.src
+      ? `<div class="photo-frame">${imgTag(it.src, it.alt)}</div>`
+      : `<div class="photo-frame"><span class="photo-empty" style="background:${it.color}">[${esc(it.label)}]</span></div>`;
+    pageL.innerHTML = `<div class="photo-wrap">${frame}</div>
+      <div class="thumb-grid">${thumbsHTML(items, items.map((_, i) => i))}</div>`;
+    return;
+  }
+
+  if (p.layout === 'work') {
+    pageL.className = 'page-l centered';
+    if (p.logo === 'spa') {
+      pageL.innerHTML = `<div class="work-stack">
+        <span class="logo-box wide"><img src="${p.img}" alt="SPA, Systems Planning and Analysis logo"></span>
+        <img class="slide" src="images/spa-slide.jpg" alt="SPA Program slide: Hypersonic Alternate Navigation, with project description, objectives and a diagram of navigation sources by increasing uncertainty">
+      </div>`;
+    } else {
+      pageL.innerHTML = `<div class="work-stack">
+        <span class="logo-box square"><img src="${p.img}" alt="SMX logo"></span>
+      </div>`;
+    }
+    return;
+  }
+
+  // Standard layout (gallery books and slot books)
+  pageL.className = 'page-l';
+  const isGallery = p.layout === 'gallery';
+  const sideIdx = isGallery ? [1, 2, 3, 4] : [0, 1, 2, 3];
+  const bottomIdx = isGallery ? [5, 6, 7, 8] : [4, 5, 6];
+  const main = it.src
+    ? imgTag(it.src, it.alt, 'object-position:50% 50%')
+    : '';
+  const sideHTML = sideIdx.filter((i) => items[i]).map((i) => thumbHTML(items[i], i, i === selected)).join('');
+  const bottomHTML = bottomIdx.filter((i) => items[i]).map((i) => thumbHTML(items[i], i, i === selected)).join('');
+  pageL.innerHTML = `<div class="gallery-top">
+      <div class="main-img" style="background:${it.color}">[${esc(it.label)}]${main}</div>
+      <div class="side">${sideHTML}</div>
+    </div>
+    <div class="bottom">${bottomHTML}</div>`;
 }
 
 function renderBook() {
   const p = PROJECTS[current];
-  const all = slots(p);
+  const items = photoItems(p);
+  if (selected >= items.length) selected = 0;
+
   document.getElementById('book-kind').textContent = p.kind;
   document.getElementById('book-title').textContent = p.title;
   document.getElementById('book-blurb').textContent = p.blurb;
-  // Case study button: opens the project's own site in a new tab when it has one.
+  document.getElementById('book-writeup').textContent = p.writeup || '[Write-up: the problem, who it was for, and why it mattered.]';
+  document.getElementById('book-process').textContent = p.process || '[Process: research, sketches, prototypes, testing, what changed along the way.]';
+  document.getElementById('book-outcome').textContent = p.outcome || '[Outcome: what got built and what you learned.]';
+  document.getElementById('book-role').textContent = p.role || '[Your role]';
+  document.getElementById('book-team').textContent = p.team || '[Team]';
+  document.getElementById('book-tools').textContent = p.tools || '[Skills used]';
+
+  // The Learn more row only shows for projects with a link.
+  const learn = document.getElementById('learn');
   const cta = document.getElementById('book-cta');
-  cta.href = p.link || '#';
-  if (p.link) { cta.target = '_blank'; cta.rel = 'noopener'; } else { cta.removeAttribute('target'); cta.removeAttribute('rel'); }
-  const s = all[selected] || all[0];
-  const main = document.getElementById('main-img');
-  main.style.background = s.color;
-  main.innerHTML = `[${esc(s.label)}]${s.src ? imgTag(s.src, `${p.title} ${s.label}`) : ''}`;
-  // Gallery books: big photo + 4 on the right + 4 below. Others: 4 on the right + 3 below.
-  const side = p.gallery ? [1, 2, 3, 4] : [0, 1, 2, 3];
-  const bottom = p.gallery ? [5, 6, 7, 8] : [4, 5, 6];
-  document.getElementById('side').innerHTML = side.filter((i) => all[i]).map((i) => thumbHTML(p, all[i], i)).join('');
-  document.getElementById('bottom').innerHTML = bottom.filter((i) => all[i]).map((i) => thumbHTML(p, all[i], i)).join('');
+  learn.hidden = !p.link;
+  if (p.link) {
+    cta.href = p.link; cta.target = '_blank'; cta.rel = 'noopener';
+    document.getElementById('book-cta-text').textContent = p.linkText || 'Read the case study';
+  }
+
+  // AutoDog's page is wider on the right, matching its photo layout.
+  document.querySelector('.page-r').style.flex = p.layout === 'feature' ? '1.07 1 440px' : '';
+
+  leftHTML(p, items);
 }
 
 function openBook(id) {
@@ -372,20 +546,45 @@ function closeBook() {
   }, ANIM_MS);
 }
 
+// ---------- Copy email ----------
+let toastTimer = null;
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function copyEmail() {
+  const fallback = () => {
+    try {
+      const t = document.createElement('textarea');
+      t.value = EMAIL; t.style.position = 'fixed'; t.style.opacity = '0';
+      document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+    } catch (e) {}
+    showToast();
+  };
+  try { navigator.clipboard.writeText(EMAIL).then(showToast, fallback); } catch (e) { fallback(); }
+}
+
+document.getElementById('copy-email').addEventListener('click', copyEmail);
+
+// ---------- Events ----------
 document.getElementById('grid').addEventListener('click', (e) => {
   const tile = e.target.closest('.tile');
-  if (tile) openBook(tile.dataset.id);
+  if (tile && !PROJECTS[tile.dataset.id].soon) openBook(tile.dataset.id);
 });
+document.getElementById('backdrop').addEventListener('click', closeBook);
+document.getElementById('close').addEventListener('click', closeBook);
 overlay.addEventListener('click', (e) => {
   const thumb = e.target.closest('.thumb');
-  if (thumb) {
-    const i = Number(thumb.dataset.slot);
-    // In a gallery book, clicking the shown photo again goes back to the big one.
-    selected = PROJECTS[current].gallery && selected === i ? 0 : i;
-    renderBook();
-    return;
-  }
-  if (e.target.closest('#close') || e.target.id === 'backdrop') closeBook();
+  if (!thumb) return;
+  const i = Number(thumb.dataset.slot);
+  // Photo books: clicking the shown photo again goes back to the main one.
+  // Slot books: clicking a slot shows it.
+  const isGallery = !!PROJECTS[current].gallery;
+  selected = isGallery && selected === i ? 0 : i;
+  renderBook();
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeBook();
